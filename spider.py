@@ -1,37 +1,28 @@
 import re
+import time
 import requests
 from bs4 import BeautifulSoup
 
+pattern = re.compile(r'(\S+?)「(.*?)」', re.DOTALL)
 
+file = open(r".\archive\archive.txt")
+urls = file.readlines()
+file.close()
 
-bookmarks = []
-archive = requests.get("http://minnanohimatubushi.2chblog.jp/archives/2015-08.html")
-archive_soup = BeautifulSoup(archive.text, "lxml")
-for bookmark in archive_soup.findAll('a', attrs={"rel": "bookmark"}):
-    bookmarks.append(bookmark['href'])
-
-print(bookmarks)
-
-
-
-# pattern = re.compile(r"(.+)「(.*)」", re.DOTALL)
-# res = requests.get("http://minnanohimatubushi.2chblog.jp/archives/1953343.html")
-# soup = BeautifulSoup(res.text, "lxml")
-#
-# for article in soup.findAll('div', attrs={"class": "t_b"}):
-#     for br in article.findAll('br'):
-#         next1 = br.nextSibling
-#         if not next1 or next1.name == 'br':
-#             continue
-#         next2 = next1.nextSibling
-#         if next2 and next2.name == 'br':
-#             matched = pattern.match(next1)
-#             if matched:
-#                 print(matched.group(1).strip() + "," + matched.group(2))
-
-# file = open('.\log\1.log', 'w')
-# file.writelines()
-# file.close()
+for url in urls:
+    file = open(".\\log\\" + url[-12:-6] + ".log", 'w')
+    res = requests.get(url)
+    soup = BeautifulSoup(res.text, "lxml")
+    article = soup.find('div', attrs={"class": "article-body-more"})
+    talks = pattern.findall(article.text)
+    for talk in talks:
+        teller = talk[0]
+        words = re.sub("<br />|(&nbsp;)|　|\s", "", talk[1])
+        print(teller + ',' + words)
+        line = teller + ',' + words + '\n'
+        file.write(line)
+    file.close()
+    time.sleep(5)
 
 
 
